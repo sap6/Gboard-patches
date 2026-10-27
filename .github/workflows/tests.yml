@@ -1,0 +1,41 @@
+# Fork-only: runs the unit tests, so changes can be checked before opening upstream PRs.
+name: Tests
+
+on:
+  push:
+    branches: [dev, 'ci-test/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Keeps Gradle and the downloaded dependencies between runs, like the release workflow.
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Run tests
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          set +e
+          ./gradlew test --continue 2>&1 | tee test.log
+          status=${PIPESTATUS[0]}
+          # Surface failures as annotations, so they can be read without the full log.
+          grep -E "FAILED|^e: |error:|Exception|expected:" test.log | head -40 | sed 's/^/::error::/'
+          exit $status
