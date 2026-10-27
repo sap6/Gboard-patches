@@ -46,7 +46,7 @@ jobs:
           # It is pushed to its own branch below, because the Manager rewrites github.com links.
           jq -n \
             --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%S)" \
-            --arg description "Simple Calculator preview $short_sha. Not an official release." \
+            --arg description "Simple Calculator test build $short_sha. Not an official release." \
             --arg download_url "https://github.com/$GITHUB_REPOSITORY/releases/download/test-build/$(basename "$mpp")" \
             --arg version "test-$short_sha" \
             '{created_at: $created_at, description: $description, download_url: $download_url,
@@ -55,24 +55,25 @@ jobs:
           source_url="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/refs/heads/test-build-manifest/patches-bundle.json"
           upstream="https://github.com/jasonwu1994/Gboard-patches/pull"
           cat > notes.md <<NOTES
-          Preview of the Simple Calculator pull requests, on top of the latest Gboard-patches. Not an official release.
+          Simple Calculator test build, based on the latest Gboard-patches. Not an official release.
 
+          Includes:
           - [#13]($upstream/13): percentages, powers, √, π, currencies and implicit multiplication
-          - [#14]($upstream/14): results as native Gboard suggestions, folded and unfolded
+          - [#14]($upstream/14): results shown as Gboard suggestions
 
-          For Gboard $gboard.
+          Built for Gboard $gboard.
 
-          **Install with Morphe Manager**
-          1. Add a patch source with this URL: \`$source_url\`
-          2. Turn the official Gboard-patches source off while patching, since this build uses the same patch names.
-          3. Patch Gboard with Simple Calculator selected, then turn it on in Gboard's patch settings.
+          **Installing**
+          1. In Morphe Manager, add this as a patch source: \`$source_url\`
+          2. Disable the official Gboard-patches source, since the patch names are the same.
+          3. Patch Gboard with Simple Calculator, then enable it in Gboard's patch settings.
 
-          Morphe Manager picks up new previews from this source automatically.
+          New test builds show up in Morphe Manager automatically.
           NOTES
           gh release delete test-build --yes --cleanup-tag || true
           gh release create test-build "$mpp" patches-bundle.json \
             --prerelease --target "$GITHUB_SHA" \
-            --title "Simple Calculator preview $short_sha" \
+            --title "Simple Calculator test build $short_sha" \
             --notes-file notes.md
           # Add this to Morphe Manager as a source:
           # https://raw.githubusercontent.com/<owner>/<repo>/refs/heads/test-build-manifest/patches-bundle.json
